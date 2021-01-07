@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -7,8 +11,10 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
-  String _username, _email, _password;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  String _username, _email, _password, _cartId = "";
   bool _obscureText = true;
+  bool isSubmitting = false;
 
   Widget _showTitle() {
     return Text(
@@ -86,21 +92,26 @@ class _RegisterPageState extends State<RegisterPage> {
       padding: EdgeInsets.only(top: 20.0),
       child: Column(
         children: [
-          RaisedButton(
-            child: Text(
-              'Submit',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyText2
-                  .copyWith(color: Colors.black),
-            ),
-            elevation: 8.0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10.0)),
-            ),
-            color: Theme.of(context).primaryColor,
-            onPressed: _submit,
-          ),
+          isSubmitting
+              ? CircularProgressIndicator(
+                  valueColor:
+                      AlwaysStoppedAnimation(Theme.of(context).primaryColor),
+                )
+              : RaisedButton(
+                  child: Text(
+                    'Submit',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyText2
+                        .copyWith(color: Colors.black),
+                  ),
+                  elevation: 8.0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                  ),
+                  color: Theme.of(context).primaryColor,
+                  onPressed: _submit,
+                ),
           FlatButton(
             child: Text('Existing user? Login'),
             onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
@@ -114,12 +125,72 @@ class _RegisterPageState extends State<RegisterPage> {
     final form = _formKey.currentState;
     if (form.validate()) {
       form.save();
+      _registerUser();
     }
+  }
+
+  void _registerUser() async {
+    setState(() => isSubmitting = true);
+    http.Response response =
+        await http.post('http://10.0.2.2:1337/auth/local/register', body: {
+      'username': _username,
+      'email': _email,
+      'password': _password,
+    });
+    final responseData = json.decode(response.body);
+    if (response.statusCode == 200) {
+      setState(() => isSubmitting = false);
+      _storeUserData(responseData);
+      _showSuccessSnack();
+      _redirectUser();
+      print(responseData);
+    } else {
+      setState(() => isSubmitting = false);
+      // print(responseData['message'].toString());
+      final errorMsg = responseData['message'][0]['messages'][0]['message'];
+      _showErrorSnack(errorMsg);
+    }
+  }
+
+  void _redirectUser() {
+    Future.delayed(Duration(seconds: 2), () {
+      Navigator.pushReplacementNamed(context, '/');
+    });
+  }
+
+  void _storeUserData(responseData) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    Map<String, dynamic> user = responseData['user'];
+    user.putIfAbsent('jwt', () => responseData['jwt']);
+    prefs.setString('user', json.encode(user));
+  }
+
+  _showSuccessSnack() {
+    final snackBar = SnackBar(
+        content: Text(
+      'User $_username successfully created!',
+      textAlign: TextAlign.center,
+      style: TextStyle(color: Colors.green),
+    ));
+    _scaffoldKey.currentState.showSnackBar(snackBar);
+    _formKey.currentState.reset();
+  }
+
+  void _showErrorSnack(String errorMsg) {
+    final snackBar = SnackBar(
+        content: Text(
+      errorMsg,
+      textAlign: TextAlign.center,
+      style: TextStyle(color: Colors.red),
+    ));
+    _scaffoldKey.currentState.showSnackBar(snackBar);
+    throw Exception('Error registering: $errorMsg');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text('Register'),
       ),
