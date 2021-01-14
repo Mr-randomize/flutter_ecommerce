@@ -35,8 +35,8 @@ class _ProductsPageState extends State<ProductsPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     StoreProvider.of<AppState>(context).dispatch(getUserAction);
-    // StoreProvider.of<AppState>(context).dispatch(getProductsAction);
-    // StoreProvider.of<AppState>(context).dispatch(getCartProductsAction);
+    StoreProvider.of<AppState>(context).dispatch(getProductsAction);
+    StoreProvider.of<AppState>(context).dispatch(getCartProductsAction);
   }
 
   final _appBar = PreferredSize(
@@ -110,16 +110,17 @@ class _ProductsPageState extends State<ProductsPage> {
                     top: false,
                     bottom: false,
                     child: GridView.builder(
-                        itemCount: state.products.length,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount:
-                                orientation == Orientation.portrait ? 2 : 3,
-                            childAspectRatio:
-                                orientation == Orientation.portrait ? 1.0 : 1.3,
-                            mainAxisSpacing: 4.0,
-                            crossAxisSpacing: 4.0),
-                        itemBuilder: (context, i) =>
-                            ProductItem(item: state.products[i])),
+                      itemCount: state.products.length,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount:
+                              orientation == Orientation.portrait ? 2 : 3,
+                          childAspectRatio:
+                              orientation == Orientation.portrait ? 1.0 : 1.3,
+                          mainAxisSpacing: 4.0,
+                          crossAxisSpacing: 4.0),
+                      itemBuilder: (context, i) =>
+                          ProductItem(item: state.products[i]),
+                    ),
                   ),
                 )
               ],

@@ -17,8 +17,7 @@ class ProductItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String pictureUrl =
-        'http://10.0.2.2:1337${item.picture.first['url']}';
+    final String pictureUrl = 'http://10.0.2.2:1337${item.picture['url']}';
     return InkWell(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(builder: (context) {

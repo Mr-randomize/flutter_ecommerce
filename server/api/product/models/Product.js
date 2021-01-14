@@ -1,10 +1,7 @@
 'use strict';
 
-const axios = require('axios');
-const stripe = require('stripe')('sk_test_51I45EMB7RQGmh2XXdYWEvSIdrZYlbz7I9naBqD99LpSfOktQdDqFzruz7UumNx6OQuanxc8XyxqG5HZe0IJSY9rt00EK0s4kn0');
-
 /**
- * Lifecycle callbacks for the `User` model.
+ * Lifecycle callbacks for the `Product` model.
  */
 
 module.exports = {
@@ -32,18 +29,11 @@ module.exports = {
   // afterFetch: async (model, result) => {},
 
   // Before creating a value.
-  // Fired before `insert` query.
-   beforeCreate: async (model) => {
-   const cart = await axios.post('http://localhost:1337/carts');
-   const customer = await stripe.customers.create({
-      email: model.get('email')
-   });
-     model.set('cart_id',cart.data.id);
-     model.set('customer_id',customer.id);
-   },
+  // Fired before an `insert` query.
+  // beforeCreate: async (model) => {},
 
   // After creating a value.
-  // Fired after `insert` query.
+  // Fired after an `insert` query.
   // afterCreate: async (model, result) => {},
 
   // Before updating a value.

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_ecommerce/models/app_state.dart';
+import 'package:flutter_ecommerce/models/order.dart';
 import 'package:flutter_ecommerce/models/product.dart';
 import 'package:flutter_ecommerce/models/user.dart';
 import 'package:redux_thunk/redux_thunk.dart';
@@ -129,4 +130,98 @@ class GetCartProductsAction {
   GetCartProductsAction(this._cartProducts);
 
   List<Product> get cartProducts => this._cartProducts;
+}
+
+ThunkAction<AppState> clearCartProductsAction = (Store<AppState> store) async {
+  final User user = store.state.user;
+
+  await http.put('http://10.0.2.2:1337/carts/${user.cartId}',
+      body: {'products': json.encode([])},
+      headers: {'Authorization': 'Bearer ${user.jwt}'});
+
+  store.dispatch(ClearCartProductsAction(List(0)));
+};
+
+class ClearCartProductsAction {
+  final List<Product> _cartProducts;
+
+  ClearCartProductsAction(this._cartProducts);
+
+  List<Product> get cartProducts => this._cartProducts;
+}
+
+/*Cards Actions*/
+ThunkAction<AppState> getCardsAction = (Store<AppState> store) async {
+  final String customerId = store.state.user.customerId;
+  http.Response response =
+      await http.get('http://10.0.2.2:1337/card?$customerId');
+  final responseData = json.decode(response.body);
+  List<dynamic> cardsList = [];
+  cardsList.add(responseData);
+  store.dispatch(GetCardsAction(cardsList));
+};
+
+class GetCardsAction {
+  final List<dynamic> _cards;
+
+  GetCardsAction(this._cards);
+
+  List<dynamic> get cards => this._cards;
+}
+
+class AddCardAction {
+  final dynamic _card;
+
+  AddCardAction(this._card);
+
+  dynamic get card => this._card;
+}
+
+/*Card Token Actions*/
+ThunkAction<AppState> getCardTokenAction = (Store<AppState> store) async {
+  final String jwt = store.state.user.jwt;
+  http.Response response = await http.get('http://10.0.2.2:1337/users/me',
+      headers: {'Authorization': 'Bearer $jwt'});
+  final responseData = json.decode(response.body);
+  List<Order> orders = [];
+  responseData['orders'].forEach((orderData) {
+    final Order order = Order.fromJson(orderData);
+    orders.add(order);
+  });
+  final String cardToken = responseData['card_token'];
+  store.dispatch(GetCardTokenAction(cardToken));
+  store.dispatch(GetOrdersAction(orders));
+};
+
+class GetCardTokenAction {
+  final String _cardToken;
+
+  GetCardTokenAction(this._cardToken);
+
+  String get cardToken => this._cardToken;
+}
+
+class UpdateCardTokenAction {
+  final String _cardToken;
+
+  UpdateCardTokenAction(this._cardToken);
+
+  String get cardToken => this._cardToken;
+}
+/*Orders Actions*/
+
+class AddOrderAction {
+  final Order _order;
+
+  AddOrderAction(this._order);
+
+  Order get order => this._order;
+}
+
+class GetOrdersAction {
+  final List<Order> _orders;
+
+  GetOrdersAction(this._orders);
+
+  List<Order> get orders => this._orders;
 }

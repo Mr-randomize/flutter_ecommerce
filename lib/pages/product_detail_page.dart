@@ -19,8 +19,7 @@ class ProductDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Orientation orientation = MediaQuery.of(context).orientation;
-    final String pictureUrl =
-        'http://10.0.2.2:1337${item.picture.first['url']}';
+    final String pictureUrl = 'http://10.0.2.2:1337${item.picture['url']}';
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
